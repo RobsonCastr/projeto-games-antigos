@@ -21,7 +21,7 @@
                 radial-gradient(circle at 50% 30%, #1e293b 0%, #090d16 80%);
         }
 
-        /* --- TEMA VERDE OLIVA (BRICK GAME ORIGINAL) --- */
+        /* --- TEMAS DO PAINEL LCD --- */
         .theme-verde {
             --bg-lcd: #9ea87c;
             --px-on: #0f1c08;
@@ -33,7 +33,6 @@
             --bezel-color: #111827;
         }
 
-        /* --- TEMA AZUL RETRÔ (ILUMINAÇÃO DE FUNDO) --- */
         .theme-azul {
             --bg-lcd: #8cb1c4;
             --px-on: #091a24;
@@ -45,7 +44,6 @@
             --bezel-color: #0f172a;
         }
 
-        /* --- TEMA VERMELHO (VIRTUAL BOY / GAME & WATCH) --- */
         .theme-vermelho {
             --bg-lcd: #ba7b7b;
             --px-on: #260303;
@@ -57,7 +55,6 @@
             --bezel-color: #1f0808;
         }
 
-        /* --- TEMA ROXO RETRÔ NEON --- */
         .theme-roxo {
             --bg-lcd: #ad99c2;
             --px-on: #1a0826;
@@ -69,7 +66,6 @@
             --bezel-color: #1e1b4b;
         }
 
-        /* TEXTURA DA CARCAÇA DE PLÁSTICO */
         .shell-texture {
             background-color: var(--shell-color);
             background-image: 
@@ -84,7 +80,6 @@
             border: 4px solid var(--shell-border);
         }
 
-        /* MOLDURA DA TELA ACRI LICA DO BRICK GAME */
         .bezel-frame {
             background: var(--bezel-color);
             box-shadow: 
@@ -93,7 +88,6 @@
             border-bottom: 2px solid rgba(255, 255, 255, 0.15);
         }
 
-        /* TELA LCD MATRIX */
         .lcd-display {
             background-color: var(--bg-lcd);
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.45);
@@ -101,7 +95,6 @@
             overflow: hidden;
         }
 
-        /* VIDRO REFLEXIVO CURVADO */
         .lcd-glare {
             position: absolute;
             top: 0;
@@ -119,7 +112,6 @@
             z-index: 15;
         }
 
-        /* BOTÕES FÍSICOS */
         .dpad-btn {
             background: linear-gradient(145deg, #374151, #1f2937);
             box-shadow: 
@@ -159,7 +151,6 @@
             box-shadow: 0 1px 0 #1f2937;
         }
 
-        /* LINHAS PONTILHADAS DO CONSOLE */
         .decor-line {
             background: repeating-linear-gradient(
                 90deg,
@@ -174,19 +165,13 @@
         canvas {
             image-rendering: pixelated;
         }
-
-        .font-lcd {
-            color: var(--px-on);
-            text-shadow: 0 0 1px var(--px-on);
-        }
     </style>
 </head>
 <body class="theme-verde min-h-screen flex items-center justify-center p-2 sm:p-4">
 
-    <!-- Carcaça do Console Portátil Brick Game -->
+    <!-- Carcaça do Console Portátil -->
     <div class="shell-texture w-full max-w-[390px] rounded-[40px] p-4 sm:p-5 flex flex-col items-center relative">
         
-        <!-- Rótulo Retrô Superior -->
         <div class="w-full flex items-center justify-between mb-2 px-2">
             <div class="flex flex-col">
                 <span class="text-[10px] font-black tracking-widest text-slate-800 italic drop-shadow-sm">BRICK GAME</span>
@@ -198,31 +183,26 @@
             </div>
         </div>
 
-        <!-- Linha Decorativa Clássica -->
         <div class="decor-line w-full rounded mb-3"></div>
 
-        <!-- Moldura de Vidro Acrílico da Tela LCD -->
+        <!-- Display do Console -->
         <div class="bezel-frame w-full rounded-2xl p-3 sm:p-4 flex flex-col items-center mb-4">
             
-            <!-- Rótulo Superior LCD -->
             <div class="w-full flex justify-between text-[7px] text-yellow-500/90 tracking-widest mb-1.5 px-1 font-bold">
                 <span>DIGITAL GAME</span>
                 <span>AUTO SWITCH</span>
             </div>
 
-            <!-- Display LCD Interno Realista -->
             <div class="lcd-display rounded-lg p-2 w-full flex flex-row gap-2 border-2 border-slate-950 relative">
                 <div class="lcd-glare"></div>
 
-                <!-- Canvas da Tela do Jogo Principal (10x20 Matriz LCD) -->
                 <div class="relative flex-none border border-black/30 bg-transparent">
                     <canvas id="lcdCanvas" width="160" height="320" class="block w-[140px] h-[280px] sm:w-[160px] sm:h-[320px]"></canvas>
 
-                    <!-- Overlay de Menu / Game Over no próprio estilo LCD -->
+                    <!-- Tela do Menu / Game Over -->
                     <div id="lcdOverlay" class="absolute inset-0 bg-[var(--bg-lcd)] flex flex-col items-center justify-center p-2 text-center z-10">
                         <h2 id="overlayTitle" class="text-[10px] font-bold text-[var(--px-on)] mb-2 uppercase leading-relaxed">SELECIONE O JOGO</h2>
                         
-                        <!-- Lista de Jogos do Menu -->
                         <div id="menuOptions" class="w-full space-y-1 mb-3 text-[7px] text-left px-1">
                             <p id="opt-0" class="p-1 font-bold">▶ 1. TETRIS</p>
                             <p id="opt-1" class="p-1 font-bold">  2. COBRINHA</p>
@@ -230,7 +210,6 @@
                             <p id="opt-3" class="p-1 font-bold">  4. ATIRADOR</p>
                         </div>
 
-                        <!-- Pontuação de Fim de Jogo -->
                         <div id="gameOverStats" class="hidden my-2 space-y-1 text-[7px] text-[var(--px-on)]">
                             <p>PONTOS FINAIS</p>
                             <p id="overlayScore" class="text-[10px] font-bold">000000</p>
@@ -242,10 +221,8 @@
                     </div>
                 </div>
 
-                <!-- Painel Lateral de Status LCD (Estilo Brick Game Antigo) -->
+                <!-- Painel Lateral de Status -->
                 <div class="flex flex-col justify-between items-start flex-1 text-[7px] text-[var(--px-on)] py-0.5 z-0 select-none">
-                    
-                    <!-- Canvas de Próxima Peça (Preview) -->
                     <div class="w-full">
                         <p class="font-bold border-b border-[var(--px-on)]/30 pb-0.5 mb-1 text-[6px] tracking-tight">PRÓXIMA</p>
                         <div class="border border-[var(--px-on)]/40 p-1 flex items-center justify-center h-12 w-full bg-black/5">
@@ -253,7 +230,6 @@
                         </div>
                     </div>
 
-                    <!-- Informações de Pontuação / Nível / Linhas -->
                     <div class="w-full space-y-1.5 my-auto">
                         <div>
                             <p class="text-[5px] opacity-70 uppercase font-bold">JOGO</p>
@@ -277,7 +253,6 @@
                         </div>
                     </div>
 
-                    <!-- Indicador de Áudio Piezoelétrico -->
                     <div class="w-full flex justify-between items-center text-[6px] border-t border-[var(--px-on)]/30 pt-1">
                         <span>SOM</span>
                         <span id="soundIcon">♪ ON</span>
@@ -285,14 +260,13 @@
                 </div>
             </div>
 
-            <!-- Rótulo Inferior da Moldura -->
             <div class="w-full flex justify-between text-[6px] text-slate-400 font-bold mt-1.5 px-1">
                 <span>SUPER 100 IN 1</span>
                 <span>LCD MATRIX GAME</span>
             </div>
         </div>
 
-        <!-- Botões Funcionais Centrais (Mudar Jogo, Som, Cor, Pausa, Reiniciar) -->
+        <!-- Botões do Sistema -->
         <div class="w-full grid grid-cols-4 gap-1.5 my-2 px-1">
             <div class="flex flex-col items-center">
                 <button onclick="returnToMenu()" class="function-btn w-9 h-3 rounded-full"></button>
@@ -312,24 +286,16 @@
             </div>
         </div>
 
-        <!-- Layout dos Controles de Mão (D-Pad + Botão de Ação Grande) -->
+        <!-- Controles Direcionais e Botão Principal -->
         <div class="w-full flex justify-between items-center mt-3 px-1">
-            
-            <!-- D-Pad Direcional Clássico -->
             <div class="relative w-28 h-28 sm:w-32 sm:h-32 flex-none">
-                <!-- Para Cima -->
                 <button ontouchstart="handleTouch('up', event)" onclick="handleControllerInput('up')" class="dpad-btn absolute top-0 left-9 sm:left-10 w-10 sm:w-11 h-9 sm:h-10 rounded-t-lg flex items-center justify-center text-white text-xs">▲</button>
-                <!-- Para Baixo -->
                 <button ontouchstart="handleTouch('down', event)" onclick="handleControllerInput('down')" class="dpad-btn absolute bottom-0 left-9 sm:left-10 w-10 sm:w-11 h-9 sm:h-10 rounded-b-lg flex items-center justify-center text-white text-xs">▼</button>
-                <!-- Esquerda -->
                 <button ontouchstart="handleTouch('left', event)" onclick="handleControllerInput('left')" class="dpad-btn absolute top-9 sm:top-10 left-0 w-9 sm:w-10 h-10 sm:h-11 rounded-l-lg flex items-center justify-center text-white text-xs">◀</button>
-                <!-- Direita -->
                 <button ontouchstart="handleTouch('right', event)" onclick="handleControllerInput('right')" class="dpad-btn absolute top-9 sm:top-10 right-0 w-9 sm:w-10 h-10 sm:h-11 rounded-r-lg flex items-center justify-center text-white text-xs">▶</button>
-                <!-- Miolo do D-Pad -->
                 <div class="absolute top-9 sm:top-10 left-9 sm:left-10 w-10 sm:w-11 h-10 sm:h-11 bg-slate-800"></div>
             </div>
 
-            <!-- Botão Gigante de Ação (Girar / Atirar / Ação) -->
             <div class="flex flex-col items-center justify-center pr-2">
                 <button ontouchstart="handleTouch('btnA', event)" onclick="handleControllerInput('btnA')" class="action-btn w-20 h-20 sm:w-22 sm:h-22 rounded-full flex items-center justify-center text-white font-bold text-sm tracking-wider active:scale-95">
                     GIRAR
@@ -338,7 +304,7 @@
             </div>
         </div>
 
-        <!-- Grade do Alto-Falante Buzzer (Efeito Estético Antigo) -->
+        <!-- Grade de Som -->
         <div class="w-full flex justify-end gap-1.5 mt-4 pr-4">
             <div class="w-1.5 h-6 bg-slate-800/60 rounded-full"></div>
             <div class="w-1.5 h-6 bg-slate-800/60 rounded-full"></div>
@@ -347,9 +313,8 @@
         </div>
     </div>
 
-    <!-- Sintetizador de Áudio 8-Bit + Mecânica do Console -->
+    <!-- Lógica em JS -->
     <script>
-        // --- 1. SINTETIZADOR DE ÁUDIO PIEZOELÉTRICO (BEEP / BUZZER CHIPTUNE) ---
         let audioCtx = null;
         let soundEnabled = true;
 
@@ -396,9 +361,9 @@
                     osc.stop(now + 0.05);
                 } else if (type === 'point' || type === 'line') {
                     osc.type = 'square';
-                    osc.frequency.setValueAtTime(523.25, now); // C5
-                    osc.frequency.setValueAtTime(659.25, now + 0.05); // E5
-                    osc.frequency.setValueAtTime(783.99, now + 0.10); // G5
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.05);
+                    osc.frequency.setValueAtTime(783.99, now + 0.10);
                     gain.gain.setValueAtTime(0.06, now);
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.18);
                     osc.start(now);
@@ -442,7 +407,6 @@
             }
         }
 
-        // --- 2. SELETOR DE TEMAS LCD ---
         const themes = ['verde', 'azul', 'vermelho', 'roxo'];
         let currentThemeIdx = 0;
 
@@ -453,7 +417,6 @@
             renderCurrentGame();
         }
 
-        // --- 3. ESTADO GLOBAL E CANVAS ---
         const canvas = document.getElementById('lcdCanvas');
         const ctx = canvas.getContext('2d');
         const nextCanvas = document.getElementById('nextCanvas');
@@ -461,11 +424,11 @@
 
         const COLS = 10;
         const ROWS = 20;
-        const BLOCK_SIZE = 16; // 10 * 16 = 160px largura, 20 * 16 = 320px altura
+        const BLOCK_SIZE = 16;
 
-        let selectedGameIndex = 0; // 0: Tetris, 1: Snake, 2: Corrida, 3: Atirador
+        let selectedGameIndex = 0;
         const GAME_NAMES = ['TETRIS', 'COBRINHA', 'CORRIDA', 'ATIRADOR'];
-        let gameState = 'MENU'; // MENU, PLAYING, PAUSED, GAMEOVER
+        let gameState = 'MENU';
 
         let score = 0;
         let highScores = [
@@ -481,7 +444,6 @@
         let accumulator = 0;
         let stepSpeed = 500;
 
-        // --- RENDERIZADOR DE MATRIZ DE SEGMENTOS DE LCD COM GHOSTING REALISTA ---
         function getStyleColor(varName) {
             return getComputedStyle(document.body).getPropertyValue(varName).trim();
         }
@@ -493,7 +455,6 @@
             ctx.fillStyle = getStyleColor('--bg-lcd');
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Desenha a malha de pixels inativos (Filtro LCD "GHOSTING")
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
                     drawBrickPixel(ctx, c, r, pxOff, pxGhost);
@@ -505,11 +466,9 @@
             const px = x * size;
             const py = y * size;
 
-            // Borda do Tijolo do LCD
             targetCtx.fillStyle = colorDark;
             targetCtx.fillRect(px, py, size, size);
 
-            // Miolo Recortado (Estilo clássico do LCD Brick Game)
             targetCtx.fillStyle = colorInner;
             targetCtx.fillRect(px + 2, py + 2, size - 4, size - 4);
 
@@ -527,7 +486,6 @@
             nextCtx.fillStyle = getStyleColor('--bg-lcd');
             nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
 
-            // Desenha os pixels fantasma da caixa de preview
             const pxOff = getStyleColor('--px-off');
             const pxGhost = getStyleColor('--px-ghost');
             for (let r = 0; r < 4; r++) {
@@ -537,7 +495,6 @@
             }
         }
 
-        // --- NAVEGAÇÃO E GERENCIAMENTO DO MENU ---
         function updateMenuUI() {
             document.getElementById('menuOptions').classList.remove('hidden');
             document.getElementById('gameOverStats').classList.add('hidden');
@@ -643,9 +600,7 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // =================================================================
-        // JOGO 1: TETRIS CLÁSSICO BRICK GAME
-        // =================================================================
+        /* JOGO 1: TETRIS */
         let tetrisBoard, currentPiece, nextPiece;
         const TETRIS_SHAPES = {
             I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -714,7 +669,6 @@
                 }
             }
 
-            // Limpeza de Linhas Completa
             let cleared = 0;
             outer: for (let r = ROWS - 1; r >= 0; r--) {
                 for (let c = 0; c < COLS; c++) {
@@ -748,7 +702,6 @@
         function drawTetris() {
             drawLCDGridBackground();
 
-            // Desenha os blocos fixos na matriz
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
                     if (tetrisBoard[r][c] !== 0) {
@@ -757,7 +710,6 @@
                 }
             }
 
-            // Desenha a peça caindo
             if (currentPiece) {
                 const m = currentPiece.matrix;
                 for (let r = 0; r < m.length; r++) {
@@ -786,9 +738,7 @@
             }
         }
 
-        // =================================================================
-        // JOGO 2: JOGO DA COBRINHA (SNAKE BRICK LCD)
-        // =================================================================
+        /* JOGO 2: COBRINHA */
         let snake, snakeDir, nextSnakeDir, food;
 
         function initSnake() {
@@ -816,13 +766,11 @@
             snakeDir = nextSnakeDir;
             const head = { x: snake[0].x + snakeDir.x, y: snake[0].y + snakeDir.y };
 
-            // Colisão com Bordas
             if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
                 triggerGameOver();
                 return;
             }
 
-            // Colisão com o Próprio Corpo
             if (snake.some(s => s.x === head.x && s.y === head.y)) {
                 triggerGameOver();
                 return;
@@ -830,7 +778,6 @@
 
             snake.unshift(head);
 
-            // Comeu a Maçã
             if (head.x === food.x && head.y === food.y) {
                 score += 50 * level;
                 linesOrStat++;
@@ -849,26 +796,22 @@
         function drawSnake() {
             drawLCDGridBackground();
 
-            // Corpo da Cobrinha
             snake.forEach(part => {
                 drawActivePixel(part.x, part.y);
             });
 
-            // Maçã Piscante no Estilo LCD
             if (Math.floor(Date.now() / 200) % 2 === 0) {
                 drawActivePixel(food.x, food.y);
             }
         }
 
-        // =================================================================
-        // JOGO 3: CORRIDA DE TIJOLOS (BRICK RACING - 3 PISTAS)
-        // =================================================================
+        /* JOGO 3: CORRIDA */
         let playerCarLane, enemyCars, raceDistance;
 
         function initRace() {
             document.getElementById('stat3Label').innerText = 'KM/H';
             clearPreviews();
-            playerCarLane = 1; // Pistas: 0 (Esquerda), 1 (Centro), 2 (Direita)
+            playerCarLane = 1;
             enemyCars = [];
             raceDistance = 0;
             stepSpeed = 130;
@@ -879,12 +822,10 @@
             linesOrStat = 80 + level * 20;
             score += 10;
 
-            // Gera carros inimigos
             if (Math.random() < 0.35 && (enemyCars.length === 0 || enemyCars[enemyCars.length - 1].y > 6)) {
                 enemyCars.push({ lane: Math.floor(Math.random() * 3), y: -4 });
             }
 
-            // Move os carros inimigos
             for (let i = enemyCars.length - 1; i >= 0; i--) {
                 enemyCars[i].y++;
                 if (enemyCars[i].y > ROWS) {
@@ -893,7 +834,6 @@
                 }
             }
 
-            // Checa Colisão dos Carros Pixelados (3x4 blocos)
             for (let enemy of enemyCars) {
                 if (enemy.lane === playerCarLane && enemy.y + 3 >= 16 && enemy.y <= 19) {
                     playSound('explosion');
@@ -911,10 +851,7 @@
         }
 
         function drawCar(lane, y) {
-            // Cada pista tem largura ajustada no grid de 10 colunas
-            // Pistas começam nas colunas: 1, 4, 7
             const laneX = [1, 4, 7][lane];
-
             const carPattern = [
                 [0, 1, 0],
                 [1, 1, 1],
@@ -938,7 +875,6 @@
         function drawRace() {
             drawLCDGridBackground();
 
-            // Linhas divisórias da pista animadas nas colunas 0 e 9
             for (let r = 0; r < ROWS; r++) {
                 if ((r + raceDistance) % 2 === 0) {
                     drawActivePixel(0, r);
@@ -946,18 +882,14 @@
                 }
             }
 
-            // Carro do Jogador
             drawCar(playerCarLane, 16);
 
-            // Carros Inimigos
             enemyCars.forEach(enemy => {
                 drawCar(enemy.lane, enemy.y);
             });
         }
 
-        // =================================================================
-        // JOGO 4: ATIRADOR DE BLOCOS (SPACE INVASION)
-        // =================================================================
+        /* JOGO 4: ATIRADOR */
         let playerShipX, bullets, shooterEnemies;
 
         function initShooter() {
@@ -970,7 +902,6 @@
         }
 
         function updateShooter() {
-            // Move Projetores
             for (let i = bullets.length - 1; i >= 0; i--) {
                 bullets[i].y--;
                 if (bullets[i].y < 0) {
@@ -978,17 +909,14 @@
                 }
             }
 
-            // Spawna Inimigos
             if (Math.random() < 0.3 && (shooterEnemies.length === 0 || shooterEnemies[shooterEnemies.length - 1].y > 3)) {
                 shooterEnemies.push({ x: Math.floor(Math.random() * 8) + 1, y: 0 });
             }
 
-            // Move Inimigos
             for (let i = shooterEnemies.length - 1; i >= 0; i--) {
                 shooterEnemies[i].y += 0.2;
             }
 
-            // Colisão Tiro x Inimigo
             for (let b = bullets.length - 1; b >= 0; b--) {
                 for (let e = shooterEnemies.length - 1; e >= 0; e--) {
                     if (Math.abs(bullets[b].x - shooterEnemies[e].x) <= 1 && Math.abs(bullets[b].y - Math.floor(shooterEnemies[e].y)) <= 1) {
@@ -1004,7 +932,6 @@
                 }
             }
 
-            // Inimigo invade base
             for (let enemy of shooterEnemies) {
                 if (enemy.y >= 18) {
                     triggerGameOver();
@@ -1016,18 +943,15 @@
         function drawShooter() {
             drawLCDGridBackground();
 
-            // Nave do Jogador (Formato T LCD)
             drawActivePixel(playerShipX, 19);
             drawActivePixel(playerShipX - 1, 19);
             drawActivePixel(playerShipX + 1, 19);
             drawActivePixel(playerShipX, 18);
 
-            // Tiros
             bullets.forEach(b => {
                 drawActivePixel(b.x, Math.floor(b.y));
             });
 
-            // Invasores
             shooterEnemies.forEach(e => {
                 let ey = Math.floor(e.y);
                 drawActivePixel(e.x, ey);
@@ -1036,9 +960,6 @@
             });
         }
 
-        // =================================================================
-        // LOOP PRINCIPAL E ENTRADAS DE CONTROLE
-        // =================================================================
         function renderCurrentGame() {
             if (gameState === 'MENU') {
                 drawLCDGridBackground();
@@ -1088,7 +1009,6 @@
 
             if (gameState !== 'PLAYING') return;
 
-            // TETRIS
             if (selectedGameIndex === 0) {
                 if (action === 'left') { currentPiece.x--; if (checkTetrisCollision()) currentPiece.x++; else playSound('move'); }
                 if (action === 'right') { currentPiece.x++; if (checkTetrisCollision()) currentPiece.x--; else playSound('move'); }
@@ -1115,21 +1035,15 @@
                     if (checkTetrisCollision()) currentPiece.matrix = original;
                     else playSound('rotate');
                 }
-            }
-            // COBRINHA (SNAKE)
-            else if (selectedGameIndex === 1) {
+            } else if (selectedGameIndex === 1) {
                 if (action === 'left' && snakeDir.x === 0) { nextSnakeDir = {x: -1, y: 0}; playSound('move'); }
                 if (action === 'right' && snakeDir.x === 0) { nextSnakeDir = {x: 1, y: 0}; playSound('move'); }
                 if (action === 'up' && snakeDir.y === 0) { nextSnakeDir = {x: 0, y: -1}; playSound('move'); }
                 if (action === 'down' && snakeDir.y === 0) { nextSnakeDir = {x: 0, y: 1}; playSound('move'); }
-            }
-            // CORRIDA (RACE)
-            else if (selectedGameIndex === 2) {
+            } else if (selectedGameIndex === 2) {
                 if (action === 'left' && playerCarLane > 0) { playerCarLane--; playSound('move'); }
                 if (action === 'right' && playerCarLane < 2) { playerCarLane++; playSound('move'); }
-            }
-            // ATIRADOR (SHOOTER)
-            else if (selectedGameIndex === 3) {
+            } else if (selectedGameIndex === 3) {
                 if (action === 'left' && playerShipX > 1) { playerShipX--; playSound('move'); }
                 if (action === 'right' && playerShipX < 8) { playerShipX++; playSound('move'); }
                 if (action === 'btnA' || action === 'up') {
@@ -1146,8 +1060,6 @@
             handleControllerInput(action);
         }
 
-
-        // Mapeamento de Teclado no PC
         window.addEventListener('keydown', e => {
             if (e.key === 'p' || e.key === 'P') togglePause();
             if (e.key === 'm' || e.key === 'M') returnToMenu();
@@ -1159,7 +1071,6 @@
             if (e.key === 'z' || e.key === 'Z' || e.key === 'a' || e.key === 'A' || e.key === ' ') handleControllerInput('btnA');
         });
 
-        // Inicializa o Console no Estado de Menu
         returnToMenu();
     </script>
 </body>
