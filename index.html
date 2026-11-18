@@ -201,13 +201,14 @@
 
                     <!-- Tela do Menu / Game Over -->
                     <div id="lcdOverlay" class="absolute inset-0 bg-[var(--bg-lcd)] flex flex-col items-center justify-center p-2 text-center z-10">
-                        <h2 id="overlayTitle" class="text-[10px] font-bold text-[var(--px-on)] mb-2 uppercase leading-relaxed">SELECIONE O JOGO</h2>
+                        <h2 id="overlayTitle" class="text-[9px] font-bold text-[var(--px-on)] mb-2 uppercase leading-relaxed">SELECIONE O JOGO</h2>
                         
-                        <div id="menuOptions" class="w-full space-y-1 mb-3 text-[7px] text-left px-1">
+                        <div id="menuOptions" class="w-full space-y-0.5 mb-3 text-[6.5px] text-left px-1">
                             <p id="opt-0" class="p-1 font-bold">▶ 1. TETRIS</p>
                             <p id="opt-1" class="p-1 font-bold">  2. COBRINHA</p>
                             <p id="opt-2" class="p-1 font-bold">  3. CORRIDA</p>
                             <p id="opt-3" class="p-1 font-bold">  4. ATIRADOR</p>
+                            <p id="opt-4" class="p-1 font-bold">  5. FLAPPY</p>
                         </div>
 
                         <div id="gameOverStats" class="hidden my-2 space-y-1 text-[7px] text-[var(--px-on)]">
@@ -300,7 +301,7 @@
                 <button ontouchstart="handleTouch('btnA', event)" onclick="handleControllerInput('btnA')" class="action-btn w-20 h-20 sm:w-22 sm:h-22 rounded-full flex items-center justify-center text-white font-bold text-sm tracking-wider active:scale-95">
                     GIRAR
                 </button>
-                <span class="text-[6px] font-black text-slate-800 mt-2 uppercase tracking-widest">AÇÃO / ROTATE</span>
+                <span class="text-[6px] font-black text-slate-800 mt-2 uppercase tracking-widest">AÇÃO / PULAR</span>
             </div>
         </div>
 
@@ -351,14 +352,14 @@
                     gain.gain.linearRampToValueAtTime(0.001, now + 0.03);
                     osc.start(now);
                     osc.stop(now + 0.03);
-                } else if (type === 'rotate') {
+                } else if (type === 'rotate' || type === 'flap') {
                     osc.type = 'square';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.setValueAtTime(600, now + 0.03);
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.setValueAtTime(580, now + 0.035);
                     gain.gain.setValueAtTime(0.04, now);
-                    gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.06);
                     osc.start(now);
-                    osc.stop(now + 0.05);
+                    osc.stop(now + 0.06);
                 } else if (type === 'point' || type === 'line') {
                     osc.type = 'square';
                     osc.frequency.setValueAtTime(523.25, now);
@@ -427,15 +428,16 @@
         const BLOCK_SIZE = 16;
 
         let selectedGameIndex = 0;
-        const GAME_NAMES = ['TETRIS', 'COBRINHA', 'CORRIDA', 'ATIRADOR'];
+        const GAME_NAMES = ['TETRIS', 'COBRINHA', 'CORRIDA', 'ATIRADOR', 'FLAPPY'];
         let gameState = 'MENU';
 
         let score = 0;
         let highScores = [
-            localStorage.getItem('bg_hs_tetris') || 0,
-            localStorage.getItem('bg_hs_snake') || 0,
-            localStorage.getItem('bg_hs_race') || 0,
-            localStorage.getItem('bg_hs_shooter') || 0
+            Number(localStorage.getItem('bg_hs_tetris')) || 0,
+            Number(localStorage.getItem('bg_hs_snake')) || 0,
+            Number(localStorage.getItem('bg_hs_race')) || 0,
+            Number(localStorage.getItem('bg_hs_shooter')) || 0,
+            Number(localStorage.getItem('bg_hs_flappy')) || 0
         ];
 
         let level = 1;
@@ -477,6 +479,7 @@
         }
 
         function drawActivePixel(x, y) {
+            if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return;
             const pxOn = getStyleColor('--px-on');
             const bgLcd = getStyleColor('--bg-lcd');
             drawBrickPixel(ctx, x, y, pxOn, bgLcd);
@@ -499,7 +502,7 @@
             document.getElementById('menuOptions').classList.remove('hidden');
             document.getElementById('gameOverStats').classList.add('hidden');
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < GAME_NAMES.length; i++) {
                 const opt = document.getElementById(`opt-${i}`);
                 if (i === selectedGameIndex) {
                     opt.innerText = `▶ ${i + 1}. ${GAME_NAMES[i]}`;
@@ -559,7 +562,7 @@
 
             if (score > highScores[selectedGameIndex]) {
                 highScores[selectedGameIndex] = score;
-                const storageKeys = ['bg_hs_tetris', 'bg_hs_snake', 'bg_hs_race', 'bg_hs_shooter'];
+                const storageKeys = ['bg_hs_tetris', 'bg_hs_snake', 'bg_hs_race', 'bg_hs_shooter', 'bg_hs_flappy'];
                 localStorage.setItem(storageKeys[selectedGameIndex], score);
             }
             updateScoreUI();
@@ -584,6 +587,7 @@
             score = 0;
             level = 1;
             linesOrStat = 0;
+            accumulator = 0;
             gameState = 'PLAYING';
             playSound('click');
 
@@ -594,13 +598,17 @@
             else if (selectedGameIndex === 1) initSnake();
             else if (selectedGameIndex === 2) initRace();
             else if (selectedGameIndex === 3) initShooter();
+            else if (selectedGameIndex === 4) initFlappy();
 
             updateScoreUI();
+            renderCurrentGame();
             lastTime = performance.now();
             requestAnimationFrame(gameLoop);
         }
 
-        /* JOGO 1: TETRIS */
+        /* =========================================
+           JOGO 1: TETRIS
+           ========================================= */
         let tetrisBoard, currentPiece, nextPiece;
         const TETRIS_SHAPES = {
             I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -624,12 +632,24 @@
 
         function createTetrisPiece() {
             const type = PIECES[Math.floor(Math.random() * PIECES.length)];
-            const matrix = TETRIS_SHAPES[type];
+            const matrix = TETRIS_SHAPES[type].map(row => [...row]);
             return {
                 matrix,
                 x: Math.floor(COLS / 2) - Math.floor(matrix[0].length / 2),
                 y: 0
             };
+        }
+
+        function rotateTetrisPiece() {
+            const m = currentPiece.matrix;
+            const rotated = m[0].map((_, idx) => m.map(row => row[idx]).reverse());
+            const oldMatrix = currentPiece.matrix;
+            currentPiece.matrix = rotated;
+            if (checkTetrisCollision()) {
+                currentPiece.matrix = oldMatrix;
+            } else {
+                playSound('rotate');
+            }
         }
 
         function updateTetris() {
@@ -701,15 +721,11 @@
 
         function drawTetris() {
             drawLCDGridBackground();
-
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
-                    if (tetrisBoard[r][c] !== 0) {
-                        drawActivePixel(c, r);
-                    }
+                    if (tetrisBoard[r][c] !== 0) drawActivePixel(c, r);
                 }
             }
-
             if (currentPiece) {
                 const m = currentPiece.matrix;
                 for (let r = 0; r < m.length; r++) {
@@ -728,63 +744,54 @@
             const pxOn = getStyleColor('--px-on');
             const bgLcd = getStyleColor('--bg-lcd');
             const m = nextPiece.matrix;
-
             for (let r = 0; r < m.length; r++) {
                 for (let c = 0; c < m[r].length; c++) {
-                    if (m[r][c] !== 0) {
-                        drawBrickPixel(nextCtx, c, r, pxOn, bgLcd, 12);
-                    }
+                    if (m[r][c] !== 0) drawBrickPixel(nextCtx, c, r, pxOn, bgLcd, 12);
                 }
             }
         }
 
-        /* JOGO 2: COBRINHA */
+        /* =========================================
+           JOGO 2: COBRINHA (SNAKE)
+           ========================================= */
         let snake, snakeDir, nextSnakeDir, food;
 
         function initSnake() {
-            document.getElementById('stat3Label').innerText = 'MÇÃS';
+            document.getElementById('stat3Label').innerText = 'TAMANHO';
             clearPreviews();
-            snake = [{x: 5, y: 10}, {x: 5, y: 11}, {x: 5, y: 12}];
-            snakeDir = {x: 0, y: -1};
-            nextSnakeDir = {x: 0, y: -1};
+            snake = [{ x: 5, y: 10 }, { x: 5, y: 11 }, { x: 5, y: 12 }];
+            snakeDir = { x: 0, y: -1 };
+            nextSnakeDir = { x: 0, y: -1 };
+            linesOrStat = snake.length;
+            stepSpeed = 220;
             spawnFood();
-            stepSpeed = 200;
         }
 
         function spawnFood() {
-            while (true) {
+            do {
                 food = {
                     x: Math.floor(Math.random() * COLS),
                     y: Math.floor(Math.random() * ROWS)
                 };
-                let collision = snake.some(s => s.x === food.x && s.y === food.y);
-                if (!collision) break;
-            }
+            } while (snake.some(seg => seg.x === food.x && seg.y === food.y));
         }
 
         function updateSnake() {
             snakeDir = nextSnakeDir;
             const head = { x: snake[0].x + snakeDir.x, y: snake[0].y + snakeDir.y };
 
-            if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-                triggerGameOver();
-                return;
-            }
-
-            if (snake.some(s => s.x === head.x && s.y === head.y)) {
+            if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS ||
+                snake.some(seg => seg.x === head.x && seg.y === head.y)) {
                 triggerGameOver();
                 return;
             }
 
             snake.unshift(head);
-
             if (head.x === food.x && head.y === food.y) {
                 score += 50 * level;
-                linesOrStat++;
-                if (linesOrStat % 5 === 0) {
-                    level++;
-                    stepSpeed = Math.max(60, stepSpeed - 15);
-                }
+                linesOrStat = snake.length;
+                level = Math.floor((linesOrStat - 3) / 5) + 1;
+                stepSpeed = Math.max(70, 220 - (level - 1) * 18);
                 playSound('point');
                 updateScoreUI();
                 spawnFood();
@@ -795,210 +802,317 @@
 
         function drawSnake() {
             drawLCDGridBackground();
-
-            snake.forEach(part => {
-                drawActivePixel(part.x, part.y);
-            });
-
-            if (Math.floor(Date.now() / 200) % 2 === 0) {
-                drawActivePixel(food.x, food.y);
-            }
+            snake.forEach(seg => drawActivePixel(seg.x, seg.y));
+            if (food) drawActivePixel(food.x, food.y);
         }
 
-        /* JOGO 3: CORRIDA */
-        let playerCarLane, enemyCars, raceDistance;
+        /* =========================================
+           JOGO 3: CORRIDA (RACING)
+           ========================================= */
+        let playerLane, enemyCars, roadTick;
 
         function initRace() {
-            document.getElementById('stat3Label').innerText = 'KM/H';
+            document.getElementById('stat3Label').innerText = 'CARROS';
             clearPreviews();
-            playerCarLane = 1;
+            playerLane = 0; // 0 = esquerda (x:2..4), 1 = direita (x:5..7)
             enemyCars = [];
-            raceDistance = 0;
-            stepSpeed = 130;
+            roadTick = 0;
+            stepSpeed = 160;
         }
 
-        function updateRace() {
-            raceDistance++;
-            linesOrStat = 80 + level * 20;
-            score += 10;
-
-            if (Math.random() < 0.35 && (enemyCars.length === 0 || enemyCars[enemyCars.length - 1].y > 6)) {
-                enemyCars.push({ lane: Math.floor(Math.random() * 3), y: -4 });
-            }
-
-            for (let i = enemyCars.length - 1; i >= 0; i--) {
-                enemyCars[i].y++;
-                if (enemyCars[i].y > ROWS) {
-                    enemyCars.splice(i, 1);
-                    score += 50;
-                }
-            }
-
-            for (let enemy of enemyCars) {
-                if (enemy.lane === playerCarLane && enemy.y + 3 >= 16 && enemy.y <= 19) {
-                    playSound('explosion');
-                    triggerGameOver();
-                    return;
-                }
-            }
-
-            if (raceDistance % 60 === 0) {
-                level++;
-                stepSpeed = Math.max(45, stepSpeed - 10);
-            }
-
-            updateScoreUI();
-        }
-
-        function drawCar(lane, y) {
-            const laneX = [1, 4, 7][lane];
-            const carPattern = [
+        function drawCar(lane, topY) {
+            const baseX = lane === 0 ? 2 : 5;
+            const shape = [
                 [0, 1, 0],
                 [1, 1, 1],
                 [0, 1, 0],
                 [1, 0, 1]
             ];
-
             for (let r = 0; r < 4; r++) {
                 for (let c = 0; c < 3; c++) {
-                    if (carPattern[r][c] === 1) {
-                        let py = Math.floor(y) + r;
-                        let px = laneX + c;
-                        if (py >= 0 && py < ROWS && px < COLS) {
-                            drawActivePixel(px, py);
-                        }
-                    }
+                    if (shape[r][c]) drawActivePixel(baseX + c, topY + r);
+                }
+            }
+        }
+
+        function updateRace() {
+            roadTick++;
+            if (roadTick % 9 === 0) {
+                enemyCars.push({ lane: Math.random() < 0.5 ? 0 : 1, y: -4 });
+            }
+
+            for (let i = enemyCars.length - 1; i >= 0; i--) {
+                enemyCars[i].y++;
+                if (enemyCars[i].lane === playerLane && enemyCars[i].y >= 13 && enemyCars[i].y <= 19) {
+                    triggerGameOver();
+                    return;
+                }
+                if (enemyCars[i].y >= ROWS) {
+                    enemyCars.splice(i, 1);
+                    linesOrStat++;
+                    score += 25 * level;
+                    level = Math.floor(linesOrStat / 10) + 1;
+                    stepSpeed = Math.max(55, 160 - (level - 1) * 14);
+                    playSound('point');
+                    updateScoreUI();
                 }
             }
         }
 
         function drawRace() {
             drawLCDGridBackground();
-
+            // Bordas da pista animadas
             for (let r = 0; r < ROWS; r++) {
-                if ((r + raceDistance) % 2 === 0) {
+                if ((r + roadTick) % 4 !== 0) {
                     drawActivePixel(0, r);
-                    drawActivePixel(9, r);
+                    drawActivePixel(COLS - 1, r);
                 }
             }
-
-            drawCar(playerCarLane, 16);
-
-            enemyCars.forEach(enemy => {
-                drawCar(enemy.lane, enemy.y);
-            });
+            drawCar(playerLane, 16);
+            enemyCars.forEach(car => drawCar(car.lane, car.y));
         }
 
-        /* JOGO 4: ATIRADOR */
-        let playerShipX, bullets, shooterEnemies;
+        /* =========================================
+           JOGO 4: ATIRADOR (SHOOTER)
+           ========================================= */
+        let shipX, bullets, enemies, shootTick;
 
         function initShooter() {
             document.getElementById('stat3Label').innerText = 'ABATES';
             clearPreviews();
-            playerShipX = 4;
+            shipX = 4;
             bullets = [];
-            shooterEnemies = [];
-            stepSpeed = 100;
+            enemies = [];
+            shootTick = 0;
+            stepSpeed = 110;
         }
 
         function updateShooter() {
+            shootTick++;
+
+            // Mover tiros
             for (let i = bullets.length - 1; i >= 0; i--) {
                 bullets[i].y--;
-                if (bullets[i].y < 0) {
-                    bullets.splice(i, 1);
+                if (bullets[i].y < 0) bullets.splice(i, 1);
+            }
+
+            // Gerar inimigos
+            if (shootTick % Math.max(5, 12 - level) === 0) {
+                enemies.push({ x: Math.floor(Math.random() * COLS), y: 0 });
+            }
+
+            // Mover inimigos
+            if (shootTick % 3 === 0) {
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    enemies[i].y++;
+                    if (enemies[i].y >= ROWS - 1) {
+                        triggerGameOver();
+                        return;
+                    }
                 }
             }
 
-            if (Math.random() < 0.3 && (shooterEnemies.length === 0 || shooterEnemies[shooterEnemies.length - 1].y > 3)) {
-                shooterEnemies.push({ x: Math.floor(Math.random() * 8) + 1, y: 0 });
-            }
-
-            for (let i = shooterEnemies.length - 1; i >= 0; i--) {
-                shooterEnemies[i].y += 0.2;
-            }
-
+            // Colisão tiro x inimigo
             for (let b = bullets.length - 1; b >= 0; b--) {
-                for (let e = shooterEnemies.length - 1; e >= 0; e--) {
-                    if (Math.abs(bullets[b].x - shooterEnemies[e].x) <= 1 && Math.abs(bullets[b].y - Math.floor(shooterEnemies[e].y)) <= 1) {
+                for (let e = enemies.length - 1; e >= 0; e--) {
+                    if (bullets[b].x === enemies[e].x && Math.abs(bullets[b].y - enemies[e].y) <= 1) {
                         bullets.splice(b, 1);
-                        shooterEnemies.splice(e, 1);
-                        score += 100;
+                        enemies.splice(e, 1);
                         linesOrStat++;
-                        if (linesOrStat % 8 === 0) level++;
+                        score += 30 * level;
+                        level = Math.floor(linesOrStat / 12) + 1;
                         playSound('explosion');
                         updateScoreUI();
                         break;
                     }
                 }
             }
-
-            for (let enemy of shooterEnemies) {
-                if (enemy.y >= 18) {
-                    triggerGameOver();
-                    return;
-                }
-            }
         }
 
         function drawShooter() {
             drawLCDGridBackground();
+            // Nave do jogador
+            drawActivePixel(shipX, ROWS - 2);
+            drawActivePixel(shipX - 1, ROWS - 1);
+            drawActivePixel(shipX, ROWS - 1);
+            drawActivePixel(shipX + 1, ROWS - 1);
 
-            drawActivePixel(playerShipX, 19);
-            drawActivePixel(playerShipX - 1, 19);
-            drawActivePixel(playerShipX + 1, 19);
-            drawActivePixel(playerShipX, 18);
-
-            bullets.forEach(b => {
-                drawActivePixel(b.x, Math.floor(b.y));
-            });
-
-            shooterEnemies.forEach(e => {
-                let ey = Math.floor(e.y);
-                drawActivePixel(e.x, ey);
-                drawActivePixel(e.x - 1, ey);
-                drawActivePixel(e.x + 1, ey);
-            });
+            bullets.forEach(b => drawActivePixel(b.x, b.y));
+            enemies.forEach(e => drawActivePixel(e.x, e.y));
         }
 
-        function renderCurrentGame() {
-            if (gameState === 'MENU') {
-                drawLCDGridBackground();
-                updateMenuUI();
+        /* =========================================
+           JOGO 5: FLAPPY BIRD (NOVO!)
+           ========================================= */
+        let birdY, birdVel, flappyPipes, flappyTick, birdWingUp;
+
+        function initFlappy() {
+            document.getElementById('stat3Label').innerText = 'CANOS';
+            birdY = 9;
+            birdVel = 0;
+            flappyPipes = [];
+            flappyTick = 0;
+            birdWingUp = false;
+            stepSpeed = 165;
+            drawFlappyIconPreview();
+        }
+
+        function drawFlappyIconPreview() {
+            clearPreviews();
+            const pxOn = getStyleColor('--px-on');
+            const bgLcd = getStyleColor('--bg-lcd');
+            // Desenho de um passarinho pixelado no visor PRÓXIMA
+            const birdSprite = [
+                [0, 1, 1, 0],
+                [1, 1, 1, 1],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0]
+            ];
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (birdSprite[r][c]) drawBrickPixel(nextCtx, c, r, pxOn, bgLcd, 12);
+                }
+            }
+        }
+
+        function flapBird() {
+            birdVel = -2; // Impulso para cima no grid
+            birdWingUp = true;
+            playSound('flap');
+            renderCurrentGame();
+        }
+
+        function updateFlappy() {
+            flappyTick++;
+            birdWingUp = false;
+
+            // Gravidade discreta no estilo LCD
+            birdVel = Math.min(2, birdVel + 1);
+            birdY += birdVel;
+
+            // Limites superior e inferior da tela
+            if (birdY < 0) birdY = 0;
+            if (birdY >= ROWS) {
+                triggerGameOver();
                 return;
             }
+
+            // Gerar novo cano a cada 7 passos
+            if (flappyTick % 7 === 1) {
+                const gapHeight = 5; // Espaço para passar
+                const gapStart = Math.floor(Math.random() * (ROWS - gapHeight - 4)) + 2;
+                flappyPipes.push({
+                    x: COLS - 1,
+                    gapStart: gapStart,
+                    gapHeight: gapHeight,
+                    scored: false
+                });
+            }
+
+            // Mover canos e verificar colisões
+            const birdX = 2; // Posição fixa horizontal do pássaro
+            for (let i = flappyPipes.length - 1; i >= 0; i--) {
+                const p = flappyPipes[i];
+                p.x--;
+
+                // Verifica colisão na coluna do pássaro (cano tem largura 2 blocos: p.x e p.x + 1)
+                if (birdX >= p.x && birdX <= p.x + 1) {
+                    if (birdY < p.gapStart || birdY >= p.gapStart + p.gapHeight) {
+                        triggerGameOver();
+                        return;
+                    }
+                }
+
+                // Pontuar ao ultrapassar o cano
+                if (!p.scored && p.x + 1 < birdX) {
+                    p.scored = true;
+                    linesOrStat++;
+                    score += 100 * level;
+                    level = Math.floor(linesOrStat / 5) + 1;
+                    stepSpeed = Math.max(85, 165 - (level - 1) * 12);
+                    playSound('point');
+                    updateScoreUI();
+                }
+
+                // Remover canos que saíram da tela
+                if (p.x + 1 < 0) {
+                    flappyPipes.splice(i, 1);
+                }
+            }
+        }
+
+        function drawFlappy() {
+            drawLCDGridBackground();
+
+            // Desenhar os canos (2 colunas de largura + borda na boca do cano)
+            flappyPipes.forEach(p => {
+                for (let r = 0; r < ROWS; r++) {
+                    if (r < p.gapStart || r >= p.gapStart + p.gapHeight) {
+                        drawActivePixel(p.x, r);
+                        drawActivePixel(p.x + 1, r);
+                    }
+                }
+            });
+
+            // Desenhar o pássaro (corpo + bico/asa)
+            const birdX = 2;
+            drawActivePixel(birdX, birdY);     // Corpo
+            drawActivePixel(birdX + 1, birdY); // Bico
+            if (birdWingUp) {
+                drawActivePixel(birdX - 1, birdY - 1); // Asa batendo para cima
+            } else {
+                drawActivePixel(birdX - 1, birdY);     // Asa normal
+            }
+        }
+
+        /* =========================================
+           LOOP PRINCIPAL E CONTROLES
+           ========================================= */
+        function renderCurrentGame() {
             if (selectedGameIndex === 0) drawTetris();
             else if (selectedGameIndex === 1) drawSnake();
             else if (selectedGameIndex === 2) drawRace();
             else if (selectedGameIndex === 3) drawShooter();
+            else if (selectedGameIndex === 4) drawFlappy();
         }
 
-        function gameLoop(time = 0) {
+        function gameLoop(timestamp) {
             if (gameState !== 'PLAYING') return;
 
-            const deltaTime = time - lastTime;
-            lastTime = time;
-            accumulator += deltaTime;
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+            accumulator += delta;
 
-            if (accumulator > stepSpeed) {
+            while (accumulator >= stepSpeed) {
+                accumulator -= stepSpeed;
                 if (selectedGameIndex === 0) updateTetris();
                 else if (selectedGameIndex === 1) updateSnake();
                 else if (selectedGameIndex === 2) updateRace();
                 else if (selectedGameIndex === 3) updateShooter();
-                accumulator = 0;
+                else if (selectedGameIndex === 4) updateFlappy();
+
+                if (gameState !== 'PLAYING') return;
             }
 
             renderCurrentGame();
             requestAnimationFrame(gameLoop);
         }
 
+        function handleTouch(action, event) {
+            if (event) event.preventDefault();
+            handleControllerInput(action);
+        }
+
         function handleControllerInput(action) {
+            initAudio();
+
             if (gameState === 'MENU') {
                 if (action === 'up') {
-                    selectedGameIndex = (selectedGameIndex - 1 + 4) % 4;
+                    selectedGameIndex = (selectedGameIndex - 1 + GAME_NAMES.length) % GAME_NAMES.length;
                     playSound('move');
                     updateMenuUI();
                 } else if (action === 'down') {
-                    selectedGameIndex = (selectedGameIndex + 1) % 4;
+                    selectedGameIndex = (selectedGameIndex + 1) % GAME_NAMES.length;
                     playSound('move');
                     updateMenuUI();
                 } else if (action === 'btnA') {
@@ -1007,71 +1121,90 @@
                 return;
             }
 
+            if (gameState === 'GAMEOVER') {
+                if (action === 'btnA') startSelectedGame();
+                return;
+            }
+
             if (gameState !== 'PLAYING') return;
 
+            // Controles TETRIS
             if (selectedGameIndex === 0) {
-                if (action === 'left') { currentPiece.x--; if (checkTetrisCollision()) currentPiece.x++; else playSound('move'); }
-                if (action === 'right') { currentPiece.x++; if (checkTetrisCollision()) currentPiece.x--; else playSound('move'); }
-                if (action === 'down') { 
-                    currentPiece.y++; 
-                    if (checkTetrisCollision()) { currentPiece.y--; lockTetrisPiece(); } 
-                    else score++; 
-                    updateScoreUI(); 
+                if (action === 'left') {
+                    currentPiece.x--;
+                    if (checkTetrisCollision()) currentPiece.x++;
+                    else playSound('move');
+                } else if (action === 'right') {
+                    currentPiece.x++;
+                    if (checkTetrisCollision()) currentPiece.x--;
+                    else playSound('move');
+                } else if (action === 'down') {
+                    updateTetris();
+                    playSound('move');
+                } else if (action === 'up' || action === 'btnA') {
+                    rotateTetrisPiece();
                 }
-                if (action === 'up') {
-                    let drops = 0;
-                    while (!checkTetrisCollision()) { currentPiece.y++; drops++; }
-                    currentPiece.y--;
-                    score += drops * 2;
+            }
+            // Controles COBRINHA
+            else if (selectedGameIndex === 1) {
+                if (action === 'up' && snakeDir.y !== 1) nextSnakeDir = { x: 0, y: -1 };
+                else if (action === 'down' && snakeDir.y !== -1) nextSnakeDir = { x: 0, y: 1 };
+                else if (action === 'left' && snakeDir.x !== 1) nextSnakeDir = { x: -1, y: 0 };
+                else if (action === 'right' && snakeDir.x !== -1) nextSnakeDir = { x: 1, y: 0 };
+            }
+            // Controles CORRIDA
+            else if (selectedGameIndex === 2) {
+                if (action === 'left' && playerLane !== 0) {
+                    playerLane = 0;
+                    playSound('move');
+                } else if (action === 'right' && playerLane !== 1) {
+                    playerLane = 1;
+                    playSound('move');
+                } else if (action === 'up' || action === 'btnA') {
+                    updateRace();
+                }
+            }
+            // Controles ATIRADOR
+            else if (selectedGameIndex === 3) {
+                if (action === 'left' && shipX > 1) {
+                    shipX--;
+                    playSound('move');
+                } else if (action === 'right' && shipX < COLS - 2) {
+                    shipX++;
+                    playSound('move');
+                } else if (action === 'up' || action === 'btnA') {
+                    bullets.push({ x: shipX, y: ROWS - 3 });
                     playSound('shoot');
-                    lockTetrisPiece();
                 }
-                if (action === 'btnA') {
-                    const original = currentPiece.matrix;
-                    const N = original.length;
-                    let rotated = Array.from({ length: N }, () => Array(N).fill(0));
-                    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) rotated[c][N - 1 - r] = original[r][c];
-                    currentPiece.matrix = rotated;
-                    if (checkTetrisCollision()) currentPiece.matrix = original;
-                    else playSound('rotate');
-                }
-            } else if (selectedGameIndex === 1) {
-                if (action === 'left' && snakeDir.x === 0) { nextSnakeDir = {x: -1, y: 0}; playSound('move'); }
-                if (action === 'right' && snakeDir.x === 0) { nextSnakeDir = {x: 1, y: 0}; playSound('move'); }
-                if (action === 'up' && snakeDir.y === 0) { nextSnakeDir = {x: 0, y: -1}; playSound('move'); }
-                if (action === 'down' && snakeDir.y === 0) { nextSnakeDir = {x: 0, y: 1}; playSound('move'); }
-            } else if (selectedGameIndex === 2) {
-                if (action === 'left' && playerCarLane > 0) { playerCarLane--; playSound('move'); }
-                if (action === 'right' && playerCarLane < 2) { playerCarLane++; playSound('move'); }
-            } else if (selectedGameIndex === 3) {
-                if (action === 'left' && playerShipX > 1) { playerShipX--; playSound('move'); }
-                if (action === 'right' && playerShipX < 8) { playerShipX++; playSound('move'); }
-                if (action === 'btnA' || action === 'up') {
-                    bullets.push({ x: playerShipX, y: 17 });
-                    playSound('shoot');
+            }
+            // Controles FLAPPY BIRD
+            else if (selectedGameIndex === 4) {
+                if (action === 'up' || action === 'btnA') {
+                    flapBird();
                 }
             }
 
             renderCurrentGame();
         }
 
-        function handleTouch(action, e) {
-            if (e) e.preventDefault();
-            handleControllerInput(action);
-        }
-
-        window.addEventListener('keydown', e => {
-            if (e.key === 'p' || e.key === 'P') togglePause();
-            if (e.key === 'm' || e.key === 'M') returnToMenu();
-
-            if (e.key === 'ArrowLeft') handleControllerInput('left');
-            if (e.key === 'ArrowRight') handleControllerInput('right');
-            if (e.key === 'ArrowUp') handleControllerInput('up');
-            if (e.key === 'ArrowDown') handleControllerInput('down');
-            if (e.key === 'z' || e.key === 'Z' || e.key === 'a' || e.key === 'A' || e.key === ' ') handleControllerInput('btnA');
+        // Suporte ao teclado no PC
+        window.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+                e.preventDefault();
+            }
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') handleControllerInput('up');
+            else if (e.code === 'ArrowDown' || e.code === 'KeyS') handleControllerInput('down');
+            else if (e.code === 'ArrowLeft' || e.code === 'KeyA') handleControllerInput('left');
+            else if (e.code === 'ArrowRight' || e.code === 'KeyD') handleControllerInput('right');
+            else if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyZ') handleControllerInput('btnA');
+            else if (e.code === 'KeyP') togglePause();
+            else if (e.code === 'Escape') returnToMenu();
         });
 
-        returnToMenu();
+        // Inicialização ao abrir
+        updateMenuUI();
+        clearPreviews();
+        drawLCDGridBackground();
     </script>
 </body>
 </html>
